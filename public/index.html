@@ -1,0 +1,92 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Notes App</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 30px;
+        }
+        input, button {
+            padding: 8px;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>My Notes</h2>
+
+    <input id="note" placeholder="Enter a note">
+    <button onclick="addNote()">Add Note</button>
+
+    <h3>Saved Notes</h3>
+    <ul id="notes"></ul>
+
+    <script type="module">
+        import { initializeApp } from
+        "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+
+        import {
+            getFirestore, collection, addDoc,
+            getDocs, deleteDoc, doc
+        } from
+        "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+            const firebaseConfig = {
+                apiKey: "AIzaSyARVz8N8letphwmgHU4BbTx8f49A_4DaV8",
+                authDomain: "student-app-778b4.firebaseapp.com",
+                projectId: "student-app-778b4",
+                storageBucket: "student-app-778b4.firebasestorage.app",
+                messagingSenderId: "409811423385",
+                appId: "1:409811423385:web:0fe370de6d0ee30de2e808"
+            };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function loadNotes() {
+            const list = document.getElementById("notes");
+            list.replaceChildren();
+
+            const result = await getDocs(collection(db, "notes"));
+
+            result.forEach(item => {
+                const li = document.createElement("li");
+                li.appendChild(document.createTextNode(item.data().text + " "));
+
+                const btn = document.createElement("button");
+                btn.textContent = "Delete";
+                btn.onclick = async () => {
+                    await deleteDoc(doc(db, "notes", item.id));
+                    loadNotes();
+                };
+
+                li.appendChild(btn);
+                list.appendChild(li);
+            });
+        }
+
+        window.addNote = async function () {
+            const input = document.getElementById("note");
+            const text = input.value.trim();
+
+            if (!text) {
+                alert("Enter a note");
+                return;
+            }
+
+            await addDoc(collection(db, "notes"), {
+                text: text
+            });
+
+            input.value = "";
+            loadNotes();
+        };
+
+        loadNotes();
+    </script>
+
+</body>
+</html>
